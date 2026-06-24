@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenify – Sign up</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--lime:#c9f542;--bg:#060606;--panel:#0c0c0c;--card:#0f0f0f;--border:#1c1c1c;--border2:#282828;--text:#e8e8e8;--sub:#555}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+body{display:flex;align-items:stretch;min-height:100vh}
+
+/* ── LEFT ── */
+.left{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:40px 48px;background:#050505;border-right:1px solid var(--border)}
+.orb{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none}
+.orb1{width:500px;height:500px;background:rgba(201,245,66,.06);top:-80px;left:-80px;animation:ob1 14s ease-in-out infinite alternate}
+.orb2{width:380px;height:380px;background:rgba(201,245,66,.04);bottom:0;right:-60px;animation:ob2 18s ease-in-out infinite alternate}
+@keyframes ob1{from{transform:translate(0,0)}to{transform:translate(50px,70px)}}
+@keyframes ob2{from{transform:translate(0,0)}to{transform:translate(-40px,-50px)}}
+.left-logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;color:#fff;text-decoration:none;position:relative;z-index:1}
+.left-logo span{color:var(--lime)}
+.card-stage{position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);width:320px}
+.demo-card{border-radius:14px;overflow:hidden;border:1px solid #222;box-shadow:0 24px 64px rgba(0,0,0,.6);position:relative}
+.demo-split{height:190px;display:grid;grid-template-columns:1fr 1fr;position:relative}
+.d-photo{background:linear-gradient(160deg,#2a1f10,#3d2e1a);position:relative;overflow:hidden}
+.d-wall{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,#e0d8cc,#cec6b8)}
+.d-floor{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(180deg,#2b2417,#3d3020)}
+.d-couch{position:absolute;bottom:24%;left:50%;transform:translateX(-50%);width:70%;height:42px;background:#6b5a4e;border-radius:5px 5px 0 0}
+.d-pillow{position:absolute;top:6px;left:10px;width:18px;height:12px;background:var(--lime);border-radius:3px}
+.d-win{position:absolute;top:14%;right:12%;width:32px;height:44px;background:linear-gradient(180deg,#c5e8ff,#a8d8f8);border:2px solid #b0a090;border-radius:1px}
+.d-video{background:#080808;position:relative;overflow:hidden}
+.d-inner{position:absolute;inset:0;animation:dpan 10s ease-in-out infinite alternate;transform-origin:55% 50%}
+@keyframes dpan{from{transform:scale(1.04) translateX(-1.5%)}to{transform:scale(1.09) translateX(2%)}}
+.dv-wall{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(135deg,#ede5d9,#ddd5c5)}
+.dv-floor{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(180deg,#3d3020,#2b2417)}
+.dv-couch{position:absolute;bottom:24%;left:50%;transform:translateX(-50%);width:70%;height:42px;background:#6b5a4e;border-radius:5px 5px 0 0}
+.dv-pillow{position:absolute;top:6px;left:10px;width:18px;height:12px;background:var(--lime);border-radius:3px}
+.dv-win{position:absolute;top:14%;right:12%;width:32px;height:44px;background:linear-gradient(180deg,#ffdf90,#ffc840);border:2px solid #b0a090;border-radius:1px;animation:wg 4s ease-in-out infinite alternate}
+@keyframes wg{from{filter:brightness(.85)}to{filter:brightness(1.2)}}
+.dv-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.55) 100%)}
+.dv-bt{position:absolute;top:0;left:0;right:0;height:16px;background:rgba(0,0,0,.9)}
+.dv-bb{position:absolute;bottom:0;left:0;right:0;height:16px;background:rgba(0,0,0,.9)}
+.d-divider{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--lime);transform:translateX(-50%);z-index:5}
+.d-divider::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:var(--lime);border:2px solid #000;box-shadow:0 0 0 4px rgba(201,245,66,.2)}
+.d-lbl{position:absolute;bottom:8px;z-index:6;background:rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:3px 9px;font-size:9px;color:#888;letter-spacing:.5px;text-transform:uppercase}
+.d-lbl.l{left:8px}
+.d-lbl.r{right:8px;border-color:rgba(201,245,66,.2);color:rgba(201,245,66,.7)}
+.demo-bar{background:#0d0d0d;border-top:1px solid #141414;padding:8px 12px;display:flex;align-items:center;justify-content:space-between}
+.db-l{font-size:10px;color:#333}
+.db-track{width:100px;height:2px;background:#1a1a1a;border-radius:1px;overflow:hidden;margin:0 8px;flex:1}
+.db-fill{height:100%;background:var(--lime);animation:prog 5s linear infinite}
+@keyframes prog{0%{width:0%}100%{width:100%}}
+.db-r{font-size:10px;color:var(--lime)}
+.float-card{position:absolute;background:#0d0d0d;border:1px solid #222;border-radius:10px;padding:8px 12px}
+.fc1{top:-16px;left:-24px;animation:fc1a 6s ease-in-out infinite alternate}
+.fc2{bottom:-14px;right:-20px;animation:fc2a 8s ease-in-out infinite alternate}
+@keyframes fc1a{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+@keyframes fc2a{from{transform:translateY(0)}to{transform:translateY(6px)}}
+.fc-num{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--lime)}
+.fc-lbl{font-size:9px;color:#444;margin-top:1px}
+.testimonial{max-width:320px;position:relative;z-index:1}
+.t-quote{font-size:13px;color:#444;line-height:1.65;margin-bottom:12px;font-style:italic}
+.t-author{display:flex;align-items:center;gap:10px}
+.t-avatar{width:28px;height:28px;border-radius:50%;background:#1a1a1a;border:1px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-size:12px}
+.t-name{font-size:12px;color:#444}
+.t-role{font-size:11px;color:#2a2a2a}
+
+/* ── RIGHT ── */
+.right{width:440px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 44px;overflow-y:auto;position:relative}
+.right::-webkit-scrollbar{display:none}
+.back{position:absolute;top:22px;left:22px;font-size:12px;color:#333;text-decoration:none;transition:color .2s}
+.back:hover{color:#777}
+.form-wrap{width:100%;max-width:340px}
+
+/* TABS */
+.tabs{display:flex;background:#0a0a0a;border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:28px;gap:3px}
+.tab{flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:500;font-family:'Space Grotesk',sans-serif;border:none;background:transparent;color:#3a3a3a;cursor:pointer;transition:all .22s}
+.tab.active{background:#161616;color:#fff}
+
+/* FREE BADGE */
+.free-badge{background:rgba(201,245,66,.05);border:1px solid rgba(201,245,66,.12);border-radius:10px;padding:11px 14px;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.fb-icon{font-size:18px}
+.fb-text{font-size:12px;color:#555;line-height:1.5}
+.fb-text strong{color:var(--lime);font-weight:600}
+
+/* SOCIAL */
+.social-row{display:flex;gap:8px;margin-bottom:18px}
+.soc-btn{flex:1;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:10px;color:#666;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.soc-btn:hover{border-color:#3a3a3a;color:#ccc;background:#0d0d0d}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#141414}
+.divider span{font-size:11px;color:#282828}
+
+/* FORM */
+.field{margin-bottom:14px;position:relative}
+.field label{display:block;font-size:10px;color:#3a3a3a;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.field input{width:100%;background:#0a0a0a;border:1px solid var(--border);border-radius:10px;padding:13px 14px;font-size:14px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
+.field input:focus{border-color:rgba(201,245,66,.35)}
+.field input::placeholder{color:#222}
+.field input.err{border-color:rgba(220,60,60,.4)}
+.field-err{font-size:11px;color:#c44;margin-top:5px;display:none}
+.field.has-err .field-err{display:block}
+.fi{position:relative}
+.eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#2a2a2a;cursor:pointer;font-size:13px;padding:2px;transition:color .2s}
+.eye:hover{color:#777}
+
+/* PWD STRENGTH */
+.pwd-str{margin-top:6px;display:none}
+.pwd-str.show{display:block}
+.ps-bar{height:2px;background:#141414;border-radius:1px;overflow:hidden;margin-bottom:4px}
+.ps-fill{height:100%;border-radius:1px;transition:width .3s,background .3s;width:0%}
+.ps-lbl{font-size:10px;color:#3a3a3a}
+
+/* SUBMIT */
+.sub-btn{width:100%;padding:14px;background:var(--lime);border:none;border-radius:50px;font-size:14px;font-weight:700;font-family:'Space Grotesk',sans-serif;color:#000;cursor:pointer;transition:all .2s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+.sub-btn:hover{background:#d8ff52;transform:scale(1.01)}
+.sub-btn:active{transform:scale(.99)}
+.sub-btn.loading{pointer-events:none;opacity:.7}
+.spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.sub-btn.loading .spinner{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.terms{font-size:11px;color:#282828;text-align:center;line-height:1.6;margin-top:12px}
+.terms a{color:#3a3a3a;text-decoration:none;transition:color .2s}
+.terms a:hover{color:#777}
+.forgot{font-size:11px;color:#2a2a2a;text-decoration:none;transition:color .2s;display:block;text-align:right;margin-top:4px;margin-bottom:2px}
+.forgot:hover{color:#777}
+
+/* SUCCESS */
+.success-state{display:none;text-align:center;padding:16px 0}
+.success-state.show{display:block}
+.success-ring{width:60px;height:60px;border-radius:50%;background:rgba(201,245,66,.1);border:1px solid rgba(201,245,66,.25);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 20px;animation:spop .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes spop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+.success-h{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}
+.success-p{font-size:13px;color:var(--sub);line-height:1.65;margin-bottom:8px}
+.success-tokens{font-size:32px;font-weight:700;font-family:'Space Grotesk',sans-serif;color:var(--lime);display:block;margin:12px 0 4px;letter-spacing:-1px}
+.success-tlabel{font-size:12px;color:#444;margin-bottom:24px;display:block}
+.success-go{display:inline-block;background:var(--lime);color:#000;font-weight:700;font-family:'Space Grotesk',sans-serif;font-size:14px;padding:13px 28px;border-radius:50px;text-decoration:none;transition:all .2s}
+.success-go:hover{background:#d8ff52;transform:scale(1.02)}
+
+/* NOTIFY */
+.notif{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(12px);background:#111;border:1px solid #222;border-radius:10px;padding:10px 20px;font-size:12px;color:#888;z-index:9999;opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+.notif.show{transform:translateX(-50%) translateY(0);opacity:1}
+.notif.ok{border-color:rgba(201,245,66,.25);color:var(--lime)}
+.notif.err{border-color:rgba(220,60,60,.25);color:#f88}
+
+/* FOOTER */
+footer{position:fixed;bottom:0;left:0;right:0;padding:10px 24px;display:flex;justify-content:center;gap:20px;background:rgba(6,6,6,.8);border-top:1px solid #0f0f0f}
+footer a{font-size:11px;color:#282828;text-decoration:none;transition:color .2s}
+footer a:hover{color:#555}
+
+@media(max-width:800px){.left{display:none}.right{width:100%}}
+</style>
+</head>
+<body>
+
+<!-- LEFT -->
+<div class="left">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <a href="index.html" class="left-logo">Scene<span>ify</span></a>
+
+  <div class="card-stage">
+    <div class="float-card fc1"><div class="fc-num">2s</div><div class="fc-lbl">AI transition</div></div>
+    <div class="float-card fc2"><div class="fc-num">4K</div><div class="fc-lbl">Export quality</div></div>
+    <div class="demo-card">
+      <div class="demo-split">
+        <div class="d-photo">
+          <div class="d-wall"></div><div class="d-floor"></div><div class="d-win"></div>
+          <div class="d-couch"><div class="d-pillow"></div></div>
+        </div>
+        <div class="d-video">
+          <div class="d-inner">
+            <div class="dv-wall"></div><div class="dv-floor"></div><div class="dv-win"></div>
+            <div class="dv-couch"><div class="dv-pillow"></div></div>
+          </div>
+          <div class="dv-vignette"></div><div class="dv-bt"></div><div class="dv-bb"></div>
+        </div>
+        <div class="d-divider"></div>
+        <div class="d-lbl l">📷 Photo</div>
+        <div class="d-lbl r">🎬 Video</div>
+      </div>
+      <div class="demo-bar">
+        <span class="db-l">Generating · 15s</span>
+        <div class="db-track"><div class="db-fill"></div></div>
+        <span class="db-r">● Live</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="testimonial">
+    <div class="t-quote">"We went from spending €400 on a videographer to making a better video in 3 minutes. Every listing now has a walk-through."</div>
+    <div class="t-author">
+      <div class="t-avatar">👤</div>
+      <div><div class="t-name">Marcus Reiner</div><div class="t-role">Real estate agent · Berlin</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+  <a href="index.html" class="back">← Back</a>
+  <div class="form-wrap">
+
+    <div class="tabs">
+      <button class="tab active" id="tab-signup" onclick="switchTab('signup')">Create account</button>
+      <button class="tab" id="tab-signin" onclick="switchTab('signin')">Sign in</button>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-state" id="success-state">
+      <div class="success-ring">✓</div>
+      <div class="success-h">You're in.</div>
+      <span class="success-tokens">1</span>
+      <span class="success-tlabel">free video included — no credit card needed</span>
+      <div class="success-p">Start scenifying your first listing now.</div>
+      <a href="editor.html" class="success-go">Open editor →</a>
+    </div>
+
+    <!-- SIGN UP -->
+    <div id="form-signup">
+      <div class="free-badge">
+        <div class="fb-icon">🎬</div>
+        <div class="fb-text">Free account includes <strong>1 video generation</strong> — no credit card needed.</div>
+      </div>
+      <div class="social-row">
+        <button class="soc-btn" onclick="socialAuth('Apple')">🍎 Apple</button>
+        <button class="soc-btn" onclick="socialAuth('Google')"><span style="font-weight:700;color:#aaa;font-family:sans-serif;font-size:12px">G</span> Google</button>
+      </div>
+      <div class="divider"><span>or continue with email</span></div>
+      <div class="field" id="f-name">
+        <label>Full name</label>
+        <input type="text" id="inp-name" placeholder="Anna Schmidt" autocomplete="name" oninput="clearErr('f-name')">
+        <div class="field-err">Please enter your name</div>
+      </div>
+      <div class="field" id="f-email">
+        <label>Email</label>
+        <input type="email" id="inp-email" placeholder="anna@example.com" autocomplete="email" oninput="clearErr('f-email')">
+        <div class="field-err">Please enter a valid email</div>
+      </div>
+      <div class="field" id="f-pwd">
+        <label>Password</label>
+        <div class="fi">
+          <input type="password" id="inp-pwd" placeholder="Min. 8 characters" autocomplete="new-password" oninput="checkPwd(this.value);clearErr('f-pwd')">
+          <button class="eye" type="button" onclick="toggleEye('inp-pwd',this)" tabindex="-1">👁</button>
+        </div>
+        <div class="pwd-str" id="pwd-str">
+          <div class="ps-bar"><div class="ps-fill" id="ps-fill"></div></div>
+          <div class="ps-lbl" id="ps-lbl">Too short</div>
+        </div>
+        <div class="field-err">Password must be at least 8 characters</div>
+      </div>
+      <button class="sub-btn" id="btn-signup" onclick="submitSignup()">
+        <span>Create account</span><div class="spinner"></div>
+      </button>
+      <div class="terms">By signing up you agree to our <a href="legal.html#agb">Terms</a> and <a href="legal.html#datenschutz">Privacy Policy</a></div>
+    </div>
+
+    <!-- SIGN IN -->
+    <div id="form-signin" style="display:none">
+      <div class="social-row">
+        <button class="soc-btn" onclick="socialAuth('Apple')">🍎 Apple</button>
+        <button class="soc-btn" onclick="socialAuth('Google')"><span style="font-weight:700;color:#aaa;font-family:sans-serif;font-size:12px">G</span> Google</button>
+      </div>
+      <div class="divider"><span>or continue with email</span></div>
+      <div class="field" id="f-si-email">
+        <label>Email</label>
+        <input type="email" id="inp-si-email" placeholder="anna@example.com" autocomplete="email" oninput="clearErr('f-si-email')">
+        <div class="field-err">Please enter a valid email</div>
+      </div>
+      <div class="field" id="f-si-pwd">
+        <label>Password</label>
+        <div class="fi">
+          <input type="password" id="inp-si-pwd" placeholder="Your password" autocomplete="current-password" oninput="clearErr('f-si-pwd')">
+          <button class="eye" type="button" onclick="toggleEye('inp-si-pwd',this)" tabindex="-1">👁</button>
+        </div>
+        <div class="field-err">Please enter your password</div>
+      </div>
+      <a href="#" class="forgot" onclick="forgotPwd();return false">Forgot password?</a>
+      <button class="sub-btn" id="btn-signin" onclick="submitSignin()">
+        <span>Sign in</span><div class="spinner"></div>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <a href="legal.html#impressum">Impressum</a>
+  <a href="legal.html#datenschutz">Privacy</a>
+  <a href="legal.html#agb">Terms</a>
+  <a href="mailto:hello@scenify.io">hello@scenify.io</a>
+</footer>
+
+<div class="notif" id="notif"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const _sb = window.supabase.createClient(
+  'https://yabazilzxexllekkmqgh.supabase.co',
+  'sb_publishable_fP90Y79pCiA-HQpftP9sSA_9Oku27EW'
+);
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await _sb.auth.getSession();
+  if(session){ localStorage.setItem('sn_sess', JSON.stringify(session)); window.location.href='editor.html'; return; }
+  if(window.location.hash==='#signin') switchTab('signin');
+});
+
+function switchTab(tab){
+  const su=tab==='signup';
+  document.getElementById('tab-signup').classList.toggle('active',su);
+  document.getElementById('tab-signin').classList.toggle('active',!su);
+  document.getElementById('form-signup').style.display=su?'block':'none';
+  document.getElementById('form-signin').style.display=!su?'block':'none';
+  document.getElementById('success-state').classList.remove('show');
+}
+
+function checkPwd(v){
+  const el=document.getElementById('pwd-str'),fill=document.getElementById('ps-fill'),lbl=document.getElementById('ps-lbl');
+  if(!v){el.classList.remove('show');return}
+  el.classList.add('show');
+  let s=0;if(v.length>=8)s++;if(v.length>=12)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  const L=[{w:'20%',c:'#c55',t:'Too weak'},{w:'40%',c:'#f5a623',t:'Weak'},{w:'60%',c:'#f5d020',t:'Fair'},{w:'80%',c:'#8bc34a',t:'Good'},{w:'100%',c:'var(--lime)',t:'Strong'}];
+  const l=L[Math.min(s,4)];fill.style.width=l.w;fill.style.background=l.c;lbl.textContent=l.t;lbl.style.color=l.c;
+}
+function toggleEye(id,btn){const i=document.getElementById(id);i.type=i.type==='text'?'password':'text';btn.style.opacity=i.type==='password'?'1':'.4';}
+function validate(rules){
+  let ok=true;
+  rules.forEach(({f,check,msg})=>{
+    const el=document.getElementById(f),inp=el.querySelector('input');
+    if(!check(inp?inp.value:'')){el.classList.add('has-err');if(inp)inp.classList.add('err');const e=el.querySelector('.field-err');if(e&&msg)e.textContent=msg;ok=false;}
+  });return ok;
+}
+function clearErr(id){const el=document.getElementById(id);el.classList.remove('has-err');const i=el.querySelector('input');if(i)i.classList.remove('err');}
+function isEmail(v){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)}
+
+async function submitSignup(){
+  const ok=validate([
+    {f:'f-name',check:v=>v.trim().length>1,msg:'Please enter your name'},
+    {f:'f-email',check:isEmail,msg:'Please enter a valid email'},
+    {f:'f-pwd',check:v=>v.length>=8,msg:'Password must be at least 8 characters'},
+  ]);
+  if(!ok)return;
+  const btn=document.getElementById('btn-signup');btn.classList.add('loading');
+  const {data,error}=await _sb.auth.signUp({
+    email:document.getElementById('inp-email').value.trim(),
+    password:document.getElementById('inp-pwd').value
+  });
+  btn.classList.remove('loading');
+  if(error){notify(error.message,'err');return;}
+  if(data.session) localStorage.setItem('sn_sess',JSON.stringify(data.session));
+  document.getElementById('form-signup').style.display='none';
+  document.getElementById('success-state').classList.add('show');
+  notify('Account created!','ok');
+}
+
+async function submitSignin(){
+  const ok=validate([
+    {f:'f-si-email',check:isEmail,msg:'Please enter a valid email'},
+    {f:'f-si-pwd',check:v=>v.length>=1,msg:'Please enter your password'},
+  ]);
+  if(!ok)return;
+  const btn=document.getElementById('btn-signin');btn.classList.add('loading');
+  const {data,error}=await _sb.auth.signInWithPassword({
+    email:document.getElementById('inp-si-email').value.trim(),
+    password:document.getElementById('inp-si-pwd').value
+  });
+  btn.classList.remove('loading');
+  if(error){notify(error.message,'err');return;}
+  localStorage.setItem('sn_sess',JSON.stringify(data.session));
+  notify('Signed in — redirecting...','ok');
+  setTimeout(()=>window.location.href='editor.html',700);
+}
+
+async function socialAuth(provider){
+  const {error}=await _sb.auth.signInWithOAuth({
+    provider:provider.toLowerCase(),
+    options:{redirectTo:window.location.origin+'/editor.html'}
+  });
+  if(error)notify(error.message,'err');
+}
+
+async function forgotPwd(){
+  const email=document.getElementById('inp-si-email').value.trim();
+  if(!isEmail(email)){
+    const f=document.getElementById('f-si-email');f.classList.add('has-err');
+    f.querySelector('.field-err').textContent='Enter your email first';
+    f.querySelector('input').classList.add('err');return;
+  }
+  const {error}=await _sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/auth.html'});
+  if(error)notify(error.message,'err');
+  else notify('Reset email sent to '+email,'ok');
+}
+
+function notify(msg,type=''){
+  const n=document.getElementById('notif');
+  n.textContent=(type==='ok'?'✓ ':type==='err'?'✕ ':'')+msg;
+  n.className='notif show'+(type?' '+type:'');
+  clearTimeout(n._t);n._t=setTimeout(()=>n.classList.remove('show'),3200);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const su=document.getElementById('form-signup'),si=document.getElementById('form-signin');
+  if(su&&su.style.display!=='none')submitSignup();
+  else if(si&&si.style.display!=='none')submitSignin();
+});
+</script>
+</body>
+</html>
