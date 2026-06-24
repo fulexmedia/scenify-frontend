@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenify – Buy Tokens</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--lime:#c9f542;--bg:#060606;--panel:#0c0c0c;--card:#0f0f0f;--border:#1c1c1c;--border2:#282828;--muted:#444;--text:#e8e8e8;--sub:#555}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:18px 48px;background:rgba(6,6,6,.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:#fff;text-decoration:none}
+.logo span{color:var(--lime)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.token-badge{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;color:#666;display:flex;align-items:center;gap:6px}
+.token-dot{width:6px;height:6px;border-radius:50%;background:var(--lime)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:#888;padding:8px 18px;border-radius:50px;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center}
+.btn-ghost:hover{border-color:#444;color:#ccc}
+.btn-lime{background:var(--lime);border:none;color:#000;padding:9px 20px;border-radius:50px;font-size:13px;font-weight:600;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center}
+.btn-lime:hover{background:#d8ff52;transform:scale(1.02)}
+
+/* HERO */
+.hero{text-align:center;padding:72px 48px 56px;position:relative;overflow:hidden}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none}
+.hero-orb-1{width:600px;height:400px;background:rgba(201,245,66,.06);top:-100px;left:50%;transform:translateX(-50%)}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(36px,5vw,60px);font-weight:700;letter-spacing:-2.5px;line-height:1;margin-bottom:16px;position:relative}
+.hero h1 em{color:var(--lime);font-style:normal}
+.hero-sub{font-size:16px;color:var(--sub);max-width:440px;margin:0 auto;line-height:1.65;position:relative}
+.current-balance{display:inline-flex;align-items:center;gap:8px;background:rgba(201,245,66,.06);border:1px solid rgba(201,245,66,.15);border-radius:50px;padding:6px 16px;font-size:13px;color:#aaa;margin-bottom:28px;position:relative}
+.cb-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+
+/* BILLING TOGGLE */
+.billing-wrap{display:flex;align-items:center;justify-content:center;gap:14px;margin:32px 0 48px;position:relative}
+.billing-label{font-size:13px;color:var(--sub);cursor:pointer;transition:color .2s}
+.billing-label.active{color:#fff}
+.billing-pill{width:44px;height:24px;background:#1a1a1a;border:1px solid var(--border2);border-radius:12px;position:relative;cursor:pointer;transition:background .3s;flex-shrink:0}
+.billing-pill.on{background:var(--lime)}
+.billing-knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.billing-pill.on .billing-knob{left:22px}
+.save-tag{background:rgba(201,245,66,.1);border:1px solid rgba(201,245,66,.2);color:var(--lime);font-size:11px;padding:3px 10px;border-radius:20px;font-family:'Space Grotesk',sans-serif;font-weight:600}
+
+/* CARDS */
+.cards-wrap{max-width:960px;margin:0 auto;padding:0 32px 80px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+
+.plan-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 28px;position:relative;transition:border-color .3s,transform .3s}
+.plan-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.plan-card.featured{border-color:var(--lime)}
+.plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--lime);color:#000;font-size:11px;font-weight:700;font-family:'Space Grotesk',sans-serif;padding:3px 16px;border-radius:20px;white-space:nowrap}
+
+.plan-tier{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--lime);margin-bottom:10px}
+.plan-price{font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:700;letter-spacing:-2px;line-height:1;margin-bottom:4px}
+.plan-price sup{font-size:20px;vertical-align:top;margin-top:12px;display:inline-block}
+.plan-period{font-size:12px;color:var(--sub);margin-bottom:6px}
+.plan-tokens{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#fff;margin-bottom:3px}
+.plan-per-video{font-size:11px;color:#333;margin-bottom:20px}
+.plan-desc{font-size:13px;color:#444;line-height:1.6;padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:18px}
+
+.plan-features{list-style:none;margin-bottom:24px}
+.plan-features li{font-size:12px;color:#666;padding:7px 0;border-bottom:1px solid #0d0d0d;display:flex;gap:9px;align-items:flex-start;line-height:1.4}
+.plan-features li:last-child{border-bottom:none}
+.feat-check{color:var(--lime);font-size:11px;flex-shrink:0;margin-top:1px;font-weight:700}
+.feat-x{color:#222;font-size:11px;flex-shrink:0;margin-top:1px}
+.plan-features li.dim{color:#2a2a2a}
+
+.plan-btn{width:100%;padding:13px;border-radius:50px;font-size:14px;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
+.plan-btn.ghost{background:transparent;border:1px solid var(--border2);color:#888}
+.plan-btn.ghost:hover{border-color:#444;color:#fff}
+.plan-btn.primary{background:var(--lime);border:none;color:#000}
+.plan-btn.primary:hover{background:#d8ff52;transform:scale(1.01)}
+.plan-btn.loading{pointer-events:none;opacity:.7}
+.btn-spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.plan-btn.loading .btn-spinner{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.plan-note{font-size:11px;color:#333;text-align:center;margin-top:10px}
+
+/* TOKEN VALUE VISUALIZER */
+.value-section{max-width:960px;margin:0 auto 64px;padding:0 32px}
+.vs-title{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:#444;text-align:center;margin-bottom:20px;text-transform:uppercase;letter-spacing:1px}
+.value-bar-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.vb-item{text-align:center}
+.vb-num{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:var(--lime);letter-spacing:-1px}
+.vb-label{font-size:11px;color:#333;margin-top:3px;line-height:1.4}
+.vb-vs{font-size:10px;color:#222;margin-top:5px}
+
+/* FAQ */
+.faq-section{max-width:640px;margin:0 auto 80px;padding:0 32px}
+.faq-title{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:#444;text-align:center;margin-bottom:24px;text-transform:uppercase;letter-spacing:1px}
+.faq-item{border-bottom:1px solid var(--border);padding:16px 0;cursor:pointer}
+.faq-q{font-size:14px;color:#888;display:flex;align-items:center;justify-content:space-between;transition:color .2s}
+.faq-item:hover .faq-q{color:#fff}
+.faq-arrow{font-size:12px;color:#333;transition:transform .25s;flex-shrink:0}
+.faq-item.open .faq-arrow{transform:rotate(180deg)}
+.faq-a{font-size:13px;color:#444;line-height:1.7;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s}
+.faq-item.open .faq-a{max-height:200px;padding-top:12px}
+
+/* CHECKOUT MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:22px;padding:40px;width:100%;max-width:400px;position:relative;animation:modalIn .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes modalIn{from{opacity:0;transform:scale(.88) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-close{position:absolute;top:18px;right:18px;background:#161616;border:1px solid #222;color:#555;width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{color:#fff;border-color:#555}
+.modal-plan-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(201,245,66,.07);border:1px solid rgba(201,245,66,.15);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--lime);margin-bottom:16px;font-family:'Space Grotesk',sans-serif;font-weight:600}
+.modal-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--sub);margin-bottom:28px}
+.modal-summary{background:#0d0d0d;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:24px}
+.modal-summary-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #111;font-size:13px}
+.modal-summary-row:last-child{border-bottom:none;padding-top:10px;margin-top:4px}
+.modal-summary-row.total{font-weight:700;color:#fff;font-family:'Space Grotesk',sans-serif}
+.modal-summary-row .label{color:var(--sub)}
+.modal-summary-row .value{color:#aaa}
+.modal-summary-row.total .value{color:var(--lime)}
+
+.card-field{margin-bottom:14px}
+.card-field label{font-size:10px;color:#444;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px}
+.card-input{width:100%;background:#0d0d0d;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
+.card-input:focus{border-color:rgba(201,245,66,.3)}
+.card-input::placeholder{color:#2a2a2a}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pay-btn{width:100%;padding:14px;background:var(--lime);border:none;border-radius:50px;font-size:14px;font-weight:700;font-family:'Space Grotesk',sans-serif;color:#000;cursor:pointer;margin-top:6px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.pay-btn:hover{background:#d8ff52;transform:scale(1.01)}
+.pay-btn.loading{pointer-events:none;background:#a0c030}
+.pay-spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.pay-btn.loading .pay-spinner{display:block}
+.secure-note{font-size:11px;color:#2a2a2a;text-align:center;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px}
+
+/* SUCCESS MODAL */
+.success-modal{display:none;flex-direction:column;align-items:center;text-align:center;padding:16px 0}
+.success-modal.show{display:flex}
+.success-ring{width:64px;height:64px;border-radius:50%;background:rgba(201,245,66,.1);border:1px solid rgba(201,245,66,.25);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:20px;animation:successPop .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes successPop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+.success-h{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}
+.success-p{font-size:13px;color:var(--sub);line-height:1.65;margin-bottom:24px}
+.success-tokens{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;color:var(--lime);letter-spacing:-1px;display:block;margin-bottom:4px}
+.success-token-label{font-size:12px;color:#444;margin-bottom:24px;display:block}
+.success-go{display:inline-block;background:var(--lime);color:#000;font-weight:700;font-family:'Space Grotesk',sans-serif;font-size:14px;padding:13px 28px;border-radius:50px;text-decoration:none;transition:all .2s}
+.success-go:hover{background:#d8ff52;transform:scale(1.02)}
+
+/* NOTIF */
+.notif{position:fixed;bottom:24px;right:24px;background:#111;border:1px solid #222;border-radius:10px;padding:10px 18px;font-size:12px;color:#888;z-index:9999;transform:translateY(12px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.notif.show{transform:translateY(0);opacity:1}
+.notif.ok{border-color:rgba(201,245,66,.25);color:var(--lime)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const _sb = window.supabase.createClient('https://yabazilzxexllekkmqgh.supabase.co', 'sb_publishable_fP90Y79pCiA-HQpftP9sSA_9Oku27EW');
+const BACKEND = 'https://scenify-backend-production.up.railway.app';
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await _sb.auth.getSession();
+  if(session){
+    localStorage.setItem('sn_sess', JSON.stringify(session));
+    try {
+      const res = await fetch(BACKEND+'/api/tokens/'+session.user.id);
+      const data = await res.json();
+      if(data.tokens !== undefined){
+        document.getElementById('tok-nav').textContent = data.tokens;
+        document.getElementById('tok-hero').textContent = data.tokens;
+      }
+    } catch(e){ console.log(e); }
+  }
+  if(window.location.search.includes('payment=success'))
+    setTimeout(()=>notifyT('Payment successful! Tokens added.','ok'),500);
+});
+
+async function openCheckout(plan){
+  const { data: { session } } = await _sb.auth.getSession();
+  if(!session){ window.location.href='auth.html'; return; }
+  currentPlan=plan;
+  const m=planMeta[plan];
+  document.getElementById('modal-plan-badge').textContent=m.badge;
+  document.getElementById('modal-title').textContent=m.title;
+  document.getElementById('modal-sub').textContent=m.sub;
+  document.getElementById('sum-plan').textContent=m.planLabel;
+  document.getElementById('sum-tokens').textContent=m.tok;
+  document.getElementById('sum-ppv').textContent=m.ppv;
+  document.getElementById('sum-total').textContent=m.total;
+  document.getElementById('pay-btn-text').textContent=m.payLabel;
+  document.getElementById('checkout-form').style.display='block';
+  document.getElementById('checkout-success').classList.remove('show');
+  document.getElementById('checkout-modal').classList.add('active');
+
+  // Go straight to Stripe — no card form needed
+  const btn=document.getElementById('pay-btn');
+  btn.classList.add('loading');
+  try {
+    const res = await fetch(BACKEND+'/api/checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({plan, userId:session.user.id, userEmail:session.user.email})
+    });
+    const data = await res.json();
+    if(data.url) window.location.href=data.url;
+    else throw new Error(data.error||'Checkout failed');
+  } catch(err){
+    notifyT('Error: '+err.message,'err');
+    btn.classList.remove('loading');
+  }
+}
+function notifyT(msg,type=''){
+  const n=document.getElementById('notif');
+  n.textContent=(type==='ok'?'checkmark ':type==='err'?'x ':'')+msg;
+  n.className='notif show'+(type?' '+type:'');
+  clearTimeout(n._t);n._t=setTimeout(()=>n.classList.remove('show'),3000);
+}
+</script>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Scene<span>ify</span></a>
+  <div class="nav-right">
+    <div class="token-badge"><div class="token-dot"></div><span id="tok-nav">8</span> tokens</div>
+    <a href="editor.html" class="btn-ghost">← Back to editor</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="current-balance">
+    <div class="cb-dot"></div>
+    You have <strong id="tok-hero" style="color:var(--lime);margin:0 3px">8</strong> tokens remaining
+  </div>
+  <h1>Get more<br><em>tokens.</em></h1>
+  <div class="hero-sub">Top up once, use whenever. Tokens never expire and work across all your projects.</div>
+</div>
+
+<!-- BILLING TOGGLE -->
+<div class="billing-wrap">
+  <span class="billing-label active" id="lbl-onetime" onclick="setBilling(false)">One-time</span>
+  <div class="billing-pill" id="bill-pill" onclick="toggleBilling()"><div class="billing-knob"></div></div>
+  <span class="billing-label" id="lbl-monthly" onclick="setBilling(true)">Monthly subscription</span>
+  <span class="save-tag">Save 40%</span>
+</div>
+
+<!-- PLAN CARDS -->
+<div class="cards-wrap">
+
+  <!-- STARTER -->
+  <div class="plan-card" id="card-starter">
+    <div class="plan-tier">Starter</div>
+    <div class="plan-price"><sup>€</sup><span class="p-amt">19</span></div>
+    <div class="plan-period p-period">one time</div>
+    <div class="plan-tokens p-tok">5 videos</div>
+    <div class="plan-per-video p-ppv">€3.80 per video</div>
+    <div class="plan-desc p-desc">For trying Scenify or a one-off listing.</div>
+    <ul class="plan-features">
+      <li><span class="feat-check">✓</span> 10 video generations</li>
+      <li><span class="feat-check">✓</span> Up to 6 photos per video</li>
+      <li><span class="feat-check">✓</span> 15s max duration</li>
+      <li><span class="feat-check">✓</span> 1080p export</li>
+      <li><span class="feat-check">✓</span> 16:9 and 9:16 formats</li>
+      <li class="dim"><span class="feat-x">—</span> Watermark-free</li>
+      <li class="dim"><span class="feat-x">—</span> 4K export</li>
+    </ul>
+    <button class="plan-btn ghost" onclick="openCheckout('starter')">
+      <span class="btn-text">Buy Starter</span>
+      <div class="btn-spinner"></div>
+    </button>
+    <div class="plan-note">Tokens never expire</div>
+  </div>
+
+  <!-- PRO -->
+  <div class="plan-card featured" id="card-pro">
+    <div class="plan-badge" id="pro-badge">Most popular</div>
+    <div class="plan-tier">Pro</div>
+    <div class="plan-price"><sup>€</sup><span class="p-amt">79</span></div>
+    <div class="plan-period p-period">one time</div>
+    <div class="plan-tokens p-tok">20 videos</div>
+    <div class="plan-per-video p-ppv">€2.45 per video</div>
+    <div class="plan-desc p-desc">For active agents who need quality without a subscription.</div>
+    <ul class="plan-features">
+      <li><span class="feat-check">✓</span> 40 video generations</li>
+      <li><span class="feat-check">✓</span> Up to 8 photos per video</li>
+      <li><span class="feat-check">✓</span> 15s max duration</li>
+      <li><span class="feat-check">✓</span> 4K export</li>
+      <li><span class="feat-check">✓</span> 16:9 and 9:16 formats</li>
+      <li><span class="feat-check">✓</span> Watermark-free</li>
+      <li><span class="feat-check">✓</span> Priority rendering</li>
+    </ul>
+    <button class="plan-btn primary" onclick="openCheckout('pro')">
+      <span class="btn-text">Buy Pro</span>
+      <div class="btn-spinner"></div>
+    </button>
+    <div class="plan-note">€0.72 per video · tokens never expire</div>
+  </div>
+
+  <!-- SUBSCRIPTION -->
+  <div class="plan-card" id="card-sub">
+    <div class="plan-tier">Subscription</div>
+    <div class="plan-price"><sup>€</sup><span class="p-amt">49</span></div>
+    <div class="plan-period p-period">per month</div>
+    <div class="plan-tokens p-tok">50 videos / month</div>
+    <div class="plan-per-video p-ppv">€1.58 per video</div>
+    <div class="plan-desc p-desc">For teams and agencies scenifying listings every week.</div>
+    <ul class="plan-features">
+      <li><span class="feat-check">✓</span> 100 tokens every month</li>
+      <li><span class="feat-check">✓</span> Up to 8 photos per video</li>
+      <li><span class="feat-check">✓</span> 15s max duration</li>
+      <li><span class="feat-check">✓</span> 4K export</li>
+      <li><span class="feat-check">✓</span> 16:9 and 9:16 formats</li>
+      <li><span class="feat-check">✓</span> Watermark-free</li>
+      <li><span class="feat-check">✓</span> Priority rendering</li>
+      <li><span class="feat-check">✓</span> 3 team seats</li>
+      <li><span class="feat-check">✓</span> Unused tokens roll over</li>
+    </ul>
+    <button class="plan-btn ghost" onclick="openCheckout('sub')">
+      <span class="btn-text">Start subscription</span>
+      <div class="btn-spinner"></div>
+    </button>
+    <div class="plan-note p-note">Cancel anytime · billed monthly</div>
+  </div>
+
+</div>
+
+<!-- VALUE VISUALIZER -->
+<div class="value-section">
+  <div class="vs-title">Why it beats hiring a videographer</div>
+  <div class="value-bar-wrap">
+    <div class="vb-item">
+      <div class="vb-num">€400+</div>
+      <div class="vb-label">Typical videographer cost per listing</div>
+      <div class="vb-vs">vs. €0.49–0.90 with Scenify</div>
+    </div>
+    <div class="vb-item">
+      <div class="vb-num">3 min</div>
+      <div class="vb-label">Average time from photos to finished video</div>
+      <div class="vb-vs">vs. 1–3 day turnaround</div>
+    </div>
+    <div class="vb-item">
+      <div class="vb-num">∞</div>
+      <div class="vb-label">Revisions, formats, and re-exports</div>
+      <div class="vb-vs">included in every token</div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="faq-section">
+  <div class="faq-title">Common questions</div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Do tokens expire? <span class="faq-arrow">▾</span></div>
+    <div class="faq-a">No. One-time tokens (Starter and Pro) never expire. Subscription tokens refresh monthly, and unused ones roll over to the next month — we don't take them back.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">What exactly is one token? <span class="faq-arrow">▾</span></div>
+    <div class="faq-a">One token = one video generation. You upload your photos, arrange the order, choose your settings, and hit Generate. That uses one token regardless of length (up to 15 seconds) or format (16:9 or 9:16).</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Can I re-export in a different format without using another token? <span class="faq-arrow">▾</span></div>
+    <div class="faq-a">Yes. Once a video is generated, you can download it in 16:9 or 9:16 (and in 1080p or 4K if your plan includes it) without using additional tokens. You only spend a token when you generate a new AI video.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">How do I cancel the subscription? <span class="faq-arrow">▾</span></div>
+    <div class="faq-a">Cancel anytime from your account settings. You keep access until the end of the billing period, and any rollover tokens you've accumulated stay in your account.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Is there a refund policy? <span class="faq-arrow">▾</span></div>
+    <div class="faq-a">If you're not happy with your first video, contact us and we'll refund the token. Beyond that, tokens are non-refundable as they represent AI compute time. We offer 2 free tokens on sign-up so you can try before you buy.</div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="checkout-modal" onclick="if(event.target===this)closeCheckout()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeCheckout()">×</button>
+
+    <!-- Form view -->
+    <div id="checkout-form">
+      <div class="modal-plan-badge" id="modal-plan-badge">⚡ Pro — 40 tokens</div>
+      <div class="modal-title" id="modal-title">Complete purchase</div>
+      <div class="modal-sub" id="modal-sub">You'll be charged once. Tokens are added instantly.</div>
+
+      <div class="modal-summary" id="modal-summary">
+        <div class="modal-summary-row"><span class="label" id="sum-plan">Pro plan</span><span class="value" id="sum-tokens">20 videos</span></div>
+        <div class="modal-summary-row"><span class="label">Per video</span><span class="value" id="sum-ppv">€2.45</span></div>
+        <div class="modal-summary-row total"><span class="label">Total</span><span class="value" id="sum-total">€49</span></div>
+      </div>
+
+      <div class="card-field">
+        <label>Card number</label>
+        <input class="card-input" id="card-num" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)">
+      </div>
+      <div class="card-row">
+        <div class="card-field">
+          <label>Expiry</label>
+          <input class="card-input" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)">
+        </div>
+        <div class="card-field">
+          <label>CVC</label>
+          <input class="card-input" placeholder="123" maxlength="4" type="password">
+        </div>
+      </div>
+      <div class="card-field">
+        <label>Cardholder name</label>
+        <input class="card-input" placeholder="Anna Schmidt">
+      </div>
+
+      <button class="pay-btn" id="pay-btn" onclick="submitPayment()">
+        <span id="pay-btn-text">Pay €49</span>
+        <div class="pay-spinner" id="pay-spinner"></div>
+      </button>
+      <div class="secure-note">🔒 Secured by Stripe · SSL encrypted</div>
+    </div>
+
+    <!-- Success view -->
+    <div class="success-modal" id="checkout-success">
+      <div class="success-ring">✓</div>
+      <div class="success-h">Payment successful!</div>
+      <span class="success-tokens" id="success-tok-num">40</span>
+      <span class="success-token-label" id="success-tok-label">tokens added to your account</span>
+      <div class="success-p">Your videos are ready to generate.<br>Tokens never expire.</div>
+      <a href="editor.html" class="success-go">Back to editor →</a>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+
+<script>
+const _supabase = window.supabase.createClient(
+  'https://yabazilzxexllekkmqgh.supabase.co',
+  'sb_publishable_fP90Y79pCiA-HQpftP9sSA_9Oku27EW'  // publishable key is safe in frontend
+);
+
+// Check session on load and show token balance
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await _supabase.auth.getSession();
+  if(session) {
+    localStorage.setItem('scenify_session', JSON.stringify(session));
+    // Fetch real token balance from backend
+    try {
+      const res = await fetch('https://scenify-backend-production.up.railway.app/api/tokens/' + session.user.id);
+      const data = await res.json();
+      if(data.tokens !== undefined) {
+        document.getElementById('tok-nav').textContent = data.tokens;
+        document.getElementById('tok-hero').textContent = data.tokens;
+      }
+    } catch(e) { console.log('Could not fetch tokens', e); }
+  }
+});
+
+// Check if returning from successful Stripe payment
+if(window.location.search.includes('payment=success')) {
+  setTimeout(() => notify('Payment successful! Tokens added to your account.', 'ok'), 500);
+}
+</script>
+<script>
+// ── BILLING TOGGLE ──
+let isMonthly = false;
+const plans = {
+  starter: {
+    onetime: {amt:'19',period:'one time',tok:'5 videos',ppv:'€3.80 per video',desc:'For trying Scenify or a one-off listing.',note:'Tokens never expire'},
+    monthly: {amt:'12',period:'per month',tok:'10 tokens / month',ppv:'€0.70 per video',desc:'Billed monthly. Cancel anytime.',note:'Billed monthly · tokens roll over'},
+  },
+  pro: {
+    onetime: {amt:'29',period:'one time',tok:'20 videos',ppv:'€2.45 per video',desc:'For active agents who need quality without a subscription.',note:'€0.72 per video · tokens never expire'},
+    monthly: {amt:'19',period:'per month',tok:'40 tokens / month',ppv:'€0.47 per video',desc:'Billed monthly. Cancel anytime.',note:'Billed monthly · tokens roll over'},
+  },
+  sub: {
+    onetime: {amt:'49',period:'per month',tok:'50 videos/month',ppv:'€1.58 per video',desc:'For teams and agencies scenifying listings every week.',note:'Cancel anytime · billed monthly'},
+    monthly: {amt:'29',period:'per month',tok:'100 tokens / month',ppv:'€0.29 per video',desc:'Best value for high-volume teams.',note:'Cancel anytime · billed monthly'},
+  },
+};
+
+function toggleBilling(){ setBilling(!isMonthly); }
+function setBilling(monthly){
+  isMonthly = monthly;
+  document.getElementById('bill-pill').classList.toggle('on', monthly);
+  document.getElementById('lbl-onetime').classList.toggle('active', !monthly);
+  document.getElementById('lbl-monthly').classList.toggle('active', monthly);
+  const key = monthly ? 'monthly' : 'onetime';
+  ['starter','pro','sub'].forEach(id => {
+    const p = plans[id][key];
+    const card = document.getElementById('card-'+id);
+    card.querySelector('.p-amt').textContent = p.amt;
+    card.querySelector('.p-period').textContent = p.period;
+    card.querySelector('.p-tok').textContent = p.tok;
+    card.querySelector('.p-ppv').textContent = p.ppv;
+    card.querySelector('.p-desc').textContent = p.desc;
+    card.querySelector('.plan-note').textContent = p.note;
+  });
+  // Update sub card badge
+  document.getElementById('pro-badge').textContent = monthly ? 'Best value' : 'Most popular';
+}
+
+// ── FAQ ──
+function toggleFaq(el){
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(f=>f.classList.remove('open'));
+  if(!isOpen) el.classList.add('open');
+}
+
+// ── CHECKOUT ──
+let currentPlan = 'pro';
+const planMeta = {
+  starter: {badge:'🎬 Starter — 10 tokens',title:'Buy Starter pack',sub:'One-time payment. Tokens never expire.',planLabel:'Starter pack',tok:'10 tokens',ppv:'€0.90',total:'€9',payLabel:'Pay €9',successTok:'10',successLabel:'tokens added to your account'},
+  pro:     {badge:'⚡ Pro — 40 tokens',title:'Buy Pro pack',sub:'One-time payment. Tokens never expire.',planLabel:'Pro pack',tok:'40 tokens',ppv:'€0.72',total:'€29',payLabel:'Pay €29',successTok:'20',successLabel:'tokens added to your account'},
+  sub:     {badge:'♾ Subscription — 100 tokens/mo',title:'Start subscription',sub:'Billed monthly. Cancel anytime.',planLabel:'Subscription',tok:'100 tokens / month',ppv:'€0.49',total:'€49 / month',payLabel:'Subscribe — €49/mo',successTok:'100',successLabel:'tokens added · refreshes monthly'},
+};
+
+function openCheckout(plan){
+  currentPlan = plan;
+  const m = isMonthly && plan !== 'sub' ?
+    {...planMeta[plan], total: '€'+plans[plan].monthly.amt, payLabel:'Pay €'+plans[plan].monthly.amt+'/mo'} :
+    planMeta[plan];
+  document.getElementById('modal-plan-badge').textContent = m.badge;
+  document.getElementById('modal-title').textContent = m.title;
+  document.getElementById('modal-sub').textContent = m.sub;
+  document.getElementById('sum-plan').textContent = m.planLabel;
+  document.getElementById('sum-tokens').textContent = m.tok;
+  document.getElementById('sum-ppv').textContent = m.ppv;
+  document.getElementById('sum-total').textContent = m.total;
+  document.getElementById('pay-btn-text').textContent = m.payLabel;
+  document.getElementById('checkout-form').style.display='block';
+  document.getElementById('checkout-success').classList.remove('show');
+  document.getElementById('checkout-modal').classList.add('active');
+}
+function closeCheckout(){
+  document.getElementById('checkout-modal').classList.remove('active');
+}
+
+// ── PAYMENT ──
+async function submitPayment(){
+  // Get logged in user from Supabase session (stored in localStorage)
+  const session = JSON.parse(localStorage.getItem('scenify_session') || 'null');
+  if(!session) { notify('Please sign in first','err'); window.location.href='auth.html'; return; }
+
+  const btn = document.getElementById('pay-btn');
+  const spinner = document.getElementById('pay-spinner');
+  btn.classList.add('loading');
+  spinner.style.display='block';
+
+  try {
+    // Call Railway backend to create Stripe Checkout session
+    const res = await fetch('https://scenify-backend-production.up.railway.app/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        plan: currentPlan,
+        userId: session.user.id,
+        userEmail: session.user.email
+      })
+    });
+    const data = await res.json();
+    if(data.url) {
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || 'Checkout failed');
+    }
+  } catch(err) {
+    notify('Error: ' + err.message, 'err');
+    btn.classList.remove('loading');
+    spinner.style.display='none';
+  }
+}
+
+// ── CARD FORMATTING ──
+function formatCard(inp){
+  let v = inp.value.replace(/\D/g,'').substring(0,16);
+  inp.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(inp){
+  let v = inp.value.replace(/\D/g,'');
+  if(v.length>=2) v = v.substring(0,2)+' / '+v.substring(2,4);
+  inp.value = v;
+}
+
+// ── NOTIFY ──
+function notify(msg,type=''){
+  const n=document.getElementById('notif');
+  n.textContent=(type==='ok'?'✓ ':type==='err'?'✕ ':'')+msg;
+  n.className='notif show'+(type?' '+type:'');
+  clearTimeout(n._t);n._t=setTimeout(()=>n.classList.remove('show'),3000);
+}
+</script>
+
+<!-- SCENIFY FOOTER -->
+<footer style="border-top:1px solid #0a0a0a;padding:28px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:#060606">
+  <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:#fff">Scene<span style="color:#c9f542">ify</span></div>
+  <div style="display:flex;gap:20px;flex-wrap:wrap">
+    <a href="index.html" style="font-size:12px;color:#333;text-decoration:none">Home</a>
+    <a href="tokens.html" style="font-size:12px;color:#333;text-decoration:none">Pricing</a>
+    <a href="editor.html" style="font-size:12px;color:#333;text-decoration:none">Editor</a>
+    <a href="legal.html#impressum" style="font-size:12px;color:#333;text-decoration:none">Impressum</a>
+    <a href="legal.html#datenschutz" style="font-size:12px;color:#333;text-decoration:none">Privacy</a>
+    <a href="legal.html#agb" style="font-size:12px;color:#333;text-decoration:none">Terms</a>
+    <a href="mailto:hello@scenify.io" style="font-size:12px;color:#333;text-decoration:none">hello@scenify.io</a>
+  </div>
+  <div style="font-size:11px;color:#1e1e1e;width:100%">© 2026 Scenify UG (haftungsbeschränkt) · All rights reserved · Payments secured by Stripe</div>
+</footer>
+</body>
+</html>
