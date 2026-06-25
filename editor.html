@@ -799,29 +799,94 @@ function guessEmoji(n){
 }
 function cap(s){return s.replace(/\b\w/g,c=>c.toUpperCase())}
 
-// ── GENERATE ──
-function startGenerate(){
+// ── GENERATE — echte Kling API ──
+async function startGenerate(){
   const vis=S.scenes.filter(s=>!s.excl);
-  if(!vis.length){notify('Add at least one scene');return}
-  if(parseInt(document.getElementById('tok').textContent)<=0){notify('No tokens — buy more','warn');return}
+  if(vis.length<2){notify('Add at least 2 scenes to generate a transition','warn');return}
+
+  // Session holen
+  const { data: { session } } = await _sb.auth.getSession();
+  if(!session){notify('Please sign in first','warn');window.location.href='auth.html';return}
+
+  const tokEl=document.getElementById('tok');
+  if(parseInt(tokEl.textContent)<=0){notify('No tokens — buy more','warn');window.location.href='tokens.html';return}
+
+  // Fotos prüfen — brauchen echte URLs (Base64 oder öffentliche URLs)
+  const sceneData = vis.map(sc => ({
+    name: sc.name,
+    imageUrl: sc.imgSrc || null  // Base64 oder URL
+  }));
+
+  // Fehlende Fotos melden
+  const missing = sceneData.filter(s => !s.imageUrl);
+  if(missing.length > 0){
+    notify('Please upload real photos — demo scenes cannot be generated','warn');
+    return;
+  }
+
   const overlay=document.getElementById('render-overlay');
   const fill=document.getElementById('render-fill');
   const status=document.getElementById('render-status');
   overlay.classList.add('active');
-  const fmt=S.format==='16-9'?'16:9':S.format==='9-16-zoom'?'9:16 zoomed':'9:16 framed';
-  const steps=[[8,'Analyzing scene order…'],[22,'Planning camera route…'],[40,`Generating AI transitions (${vis.length-1} pairs)…`],[60,'Rendering seamless video…'],[78,'Applying color grade…'],[90,`Encoding ${fmt}…`],[100,'Done!']];
-  let i=0;
-  const t=setInterval(()=>{
-    if(i>=steps.length){clearInterval(t);setTimeout(()=>{
-      overlay.classList.remove('active');S.generated=true;
-      const tok=document.getElementById('tok');tok.textContent=Math.max(0,parseInt(tok.textContent)-1);
-      document.getElementById('dl-1080').disabled=false;
-      document.getElementById('dl-9-16').disabled=false;
+  fill.style.width='5%';
+  status.textContent='Sending to Kling AI…';
+
+  // Kamera-Stil ermitteln
+  const camEl = document.querySelector('.cam-opt.active .cam-label');
+  const cameraStyle = camEl ? camEl.textContent.replace('\n','').trim() : 'Smooth dolly';
+
+  try {
+    // Echter API-Call an Railway Backend
+    status.textContent='Generating AI transitions…';
+    fill.style.width='15%';
+
+    const res = await fetch(BACKEND+'/api/generate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        userId: session.user.id,
+        scenes: sceneData,
+        cameraStyle: cameraStyle,
+        duration: parseInt(document.getElementById('vlen')?.value || 15)
+      })
+    });
+
+    fill.style.width='90%';
+    status.textContent='Processing response…';
+
+    const data = await res.json();
+
+    if(!res.ok){
+      throw new Error(data.error || 'Generation failed');
+    }
+
+    // Video-URLs speichern
+    S.generatedClips = data.clips; // Array von {taskId, url}
+    S.generated = true;
+
+    // Token-Anzeige updaten
+    tokEl.textContent = data.tokensRemaining ?? Math.max(0, parseInt(tokEl.textContent)-1);
+
+    fill.style.width='100%';
+    status.textContent='Done!';
+
+    setTimeout(()=>{
+      overlay.classList.remove('active');
       fill.style.width='0%';
-      notify('Video ready! Click Download below.','ok');
-    },400);return}
-    fill.style.width=steps[i][0]+'%';status.textContent=steps[i][1];i++;
-  },750);
+
+      // Download-Buttons aktivieren
+      document.getElementById('dl-1080').disabled = false;
+      document.getElementById('dl-9-16').disabled = false;
+
+      notify(`✓ ${data.clips.length} transition${data.clips.length>1?'s':''} generated! Click Download.`,'ok');
+    }, 600);
+
+  } catch(err) {
+    overlay.classList.remove('active');
+    fill.style.width='0%';
+    console.error('Generate error:', err);
+    notify('Error: '+err.message, 'err');
+  }
 }
 
 // ── PLAY ──
@@ -857,16 +922,41 @@ function onDurChange(v){
 function pickCam(el){document.querySelectorAll('.cam-opt').forEach(e=>e.classList.remove('active'));el.classList.add('active')}
 function pickGrade(el){document.querySelectorAll('.grade').forEach(e=>e.classList.remove('active'));el.classList.add('active')}
 function togOpt(el,type){el.classList.toggle('on');el.classList.toggle('off');if(type==='lb')document.getElementById('pscreen').classList.toggle('letterbox')}
-function doDownload(fmt){
-  if(!S.generated){notify('Generate video first');return}
-  notify(`Preparing ${fmt} download…`,'ok');
-  setTimeout(()=>notify(`${fmt} download started!`,'ok'),1500);
+async function doDownload(fmt){
+  if(!S.generated || !S.generatedClips || S.generatedClips.length===0){
+    notify('Generate your video first','warn');return;
+  }
+
+  notify('Preparing download…','ok');
+
+  // Alle Clips herunterladen
+  for(let i=0; i<S.generatedClips.length; i++){
+    const clip = S.generatedClips[i];
+    try {
+      // Video als Blob laden und herunterladen
+      const res = await fetch(clip.url);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `scenify-transition-${i+1}-${fmt.replace(':','-')}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      await new Promise(r => setTimeout(r, 500)); // kurz warten zwischen Downloads
+    } catch(err) {
+      // Fallback: direkt öffnen
+      window.open(clip.url, '_blank');
+    }
+  }
+  notify(`Downloaded ${S.generatedClips.length} clip${S.generatedClips.length>1?'s':''}!`,'ok');
 }
 function notify(msg,type=''){
   const n=document.getElementById('notif');
-  n.textContent=(type==='ok'?'✓ ':type==='warn'?'⚠ ':'')+msg;
+  n.textContent=(type==='ok'?'✓ ':type==='warn'?'⚠ ':type==='err'?'✕ ':'')+msg;
   n.className='notif show'+(type?' '+type:'');
-  clearTimeout(n._t);n._t=setTimeout(()=>n.classList.remove('show'),3200);
+  clearTimeout(n._t);n._t=setTimeout(()=>n.classList.remove('show'),4000);
 }
 </script>
 
