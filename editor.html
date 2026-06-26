@@ -798,122 +798,119 @@ function guessEmoji(n){
 }
 function cap(s){return s.replace(/\b\w/g,c=>c.toUpperCase())}
 
-// ── GENERATE — echte Kling API ──
+// ── GENERATE — async mit Polling ──
 async function startGenerate(){
   const vis=S.scenes.filter(s=>!s.excl);
-  if(vis.length<2){notify('Add at least 2 scenes to generate a transition','warn');return}
+  if(vis.length<2){notify('Add at least 2 scenes','warn');return}
 
-  // Session holen
   const { data: { session } } = await _sb.auth.getSession();
-  if(!session){notify('Please sign in first','warn');window.location.href='auth.html';return}
+  if(!session){window.location.href='auth.html';return}
 
   const tokEl=document.getElementById('tok');
-  if(parseInt(tokEl.textContent)<=0){notify('No tokens — buy more','warn');window.location.href='tokens.html';return}
+  if(parseInt(tokEl.textContent)<=0){
+    notify('No tokens left','warn');
+    window.location.href='tokens.html';
+    return;
+  }
 
-  // Fotos prüfen — brauchen echte URLs (Base64 oder öffentliche URLs)
-  const sceneData = vis.map(sc => ({
-    name: sc.name,
-    imageUrl: sc.imgSrc || null  // Base64 oder URL
-  }));
-
-  // Fehlende Fotos melden
-  const missing = sceneData.filter(s => !s.imageUrl);
-  if(missing.length > 0){
-    notify('Please upload real photos — demo scenes cannot be generated','warn');
+  // Fotos prüfen
+  const sceneData = vis.map(sc => ({ name: sc.name, imageUrl: sc.imgSrc || null }));
+  if(sceneData.some(s=>!s.imageUrl)){
+    notify('Please upload real photos first — demo scenes cannot be generated','warn');
     return;
   }
 
   const overlay=document.getElementById('render-overlay');
   const fill=document.getElementById('render-fill');
   const status=document.getElementById('render-status');
+  const detail=document.getElementById('render-detail');
   overlay.classList.add('active');
-  fill.style.width='5%';
-  status.textContent='Sending to Kling AI…';
+  fill.style.width='8%';
+  status.textContent='Starting Kling AI…';
+  detail.innerHTML=`Generating ${vis.length-1} transition${vis.length-1>1?'s':''}.<br>Takes ~60–90s per clip — please wait.`;
 
-  // Kamera-Stil ermitteln
-  const camEl = document.querySelector('.cam-opt.active .cam-label');
-  const cameraStyle = camEl ? camEl.textContent.replace('\n','').trim() : 'Smooth dolly';
+  const camEl=document.querySelector('.cam-opt.active .cam-label');
+  const cameraStyle=camEl?camEl.textContent.replace(/
+/g,'').trim():'Smooth dolly';
 
   try {
-    // Echter API-Call an Railway Backend
-    status.textContent='Generating AI transitions…';
-    fill.style.width='15%';
-
-    // Live status updates während Kling generiert
-    const detail = document.getElementById('render-detail');
-    const clipsStatus = document.getElementById('render-clips-status');
-    const totalPairs = vis.length - 1;
-
-    // Simuliere Fortschritt während wir auf Kling warten
-    let progressPct = 15;
-    let pollCount = 0;
-    const progressTimer = setInterval(() => {
-      pollCount++;
-      progressPct = Math.min(85, 15 + (pollCount * 2.5));
-      fill.style.width = progressPct + '%';
-
-      // Status-Text updaten
-      if(pollCount < 5) {
-        status.textContent = 'Kling AI analyzing your photos…';
-        detail.innerHTML = `Generating ${totalPairs} seamless transition${totalPairs>1?'s':''}.<br>Usually takes 60–90s per transition.`;
-      } else if(pollCount < 15) {
-        status.textContent = 'Rendering cinematic camera movement…';
-        detail.innerHTML = `⚡ Kling AI is creating your walk-through.<br>Processing transition ${Math.min(pollCount-3, totalPairs)} of ${totalPairs}…`;
-      } else {
-        status.textContent = 'Almost done…';
-        detail.innerHTML = `Finalizing video quality.<br>Hang tight — nearly ready!`;
-      }
-    }, 5000);
-
-    const res = await fetch(BACKEND+'/api/generate', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
+    // Job starten — Backend antwortet sofort mit jobId
+    const startRes = await fetch(BACKEND+'/api/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
         userId: session.user.id,
         scenes: sceneData,
-        cameraStyle: cameraStyle,
-        duration: parseInt(document.getElementById('vlen')?.value || 15)
+        cameraStyle,
+        duration: parseInt(document.getElementById('vlen')?.value||15)
       })
     });
 
-    clearInterval(progressTimer);
-    fill.style.width='95%';
-    status.textContent='Finalizing…';
+    const startData = await startRes.json();
+    if(!startRes.ok) throw new Error(startData.error||'Failed to start');
 
-    const data = await res.json();
+    const jobId = startData.jobId;
+    const total = startData.total;
+    fill.style.width='15%';
+    status.textContent='Kling AI is generating your video…';
 
-    if(!res.ok){
-      throw new Error(data.error || 'Generation failed');
-    }
+    // Pollen bis fertig
+    let pollCount = 0;
+    const pollInterval = setInterval(async () => {
+      pollCount++;
+      try {
+        const pollRes = await fetch(BACKEND+'/api/job/'+jobId);
+        const job = await pollRes.json();
 
-    // Video-URLs speichern
-    S.generatedClips = data.clips; // Array von {taskId, url}
-    S.generated = true;
+        if(job.status === 'processing') {
+          // Fortschritt anzeigen
+          const pct = 15 + ((job.done / total) * 70);
+          fill.style.width = pct + '%';
+          status.textContent = `Kling AI working… (${job.done}/${total} clips done)`;
 
-    // Token-Anzeige updaten
-    tokEl.textContent = data.tokensRemaining ?? Math.max(0, parseInt(tokEl.textContent)-1);
+          if(pollCount < 6)
+            detail.innerHTML = `Processing transition ${job.done+1} of ${total}.<br>Each clip takes ~60–90 seconds.`;
+          else if(pollCount < 15)
+            detail.innerHTML = `⚡ Rendering cinematic camera movement…<br>${job.done} of ${total} clips complete.`;
+          else
+            detail.innerHTML = `Almost there… finalizing your video.<br>${job.done} of ${total} clips complete.`;
+        }
 
-    fill.style.width='100%';
-    status.textContent='Done!';
+        else if(job.status === 'done') {
+          clearInterval(pollInterval);
+          S.generatedClips = job.clips;
+          S.generated = true;
+          tokEl.textContent = job.tokensRemaining ?? Math.max(0, parseInt(tokEl.textContent)-1);
+          fill.style.width = '100%';
+          status.textContent = 'Done!';
+          detail.innerHTML = `✓ ${job.clips.length} clip${job.clips.length>1?'s':''} ready!`;
+          setTimeout(()=>{
+            overlay.classList.remove('active');
+            fill.style.width='0%';
+            document.getElementById('dl-1080').disabled=false;
+            document.getElementById('dl-9-16').disabled=false;
+            notify(`✓ Your video is ready — click Download below!`,'ok');
+          }, 800);
+        }
 
-    setTimeout(()=>{
-      overlay.classList.remove('active');
-      fill.style.width='0%';
+        else if(job.status === 'failed') {
+          clearInterval(pollInterval);
+          overlay.classList.remove('active');
+          fill.style.width='0%';
+          notify('Generation failed: '+job.error,'err');
+          // Token wurde bereits zurückgegeben vom Backend
+          if(job.tokensRemaining !== undefined) tokEl.textContent = job.tokensRemaining;
+        }
 
-      // Download-Buttons aktivieren
-      document.getElementById('dl-1080').disabled = false;
-      document.getElementById('dl-9-16').disabled = false;
-
-      status.textContent = 'Done!';
-      fill.style.width = '100%';
-      notify(`✓ ${data.clips.length} cinematic clip${data.clips.length>1?'s':''} ready — click Download below!`,'ok');
-    }, 600);
+      } catch(e) {
+        console.error('Poll error:', e);
+      }
+    }, 5000); // alle 5 Sekunden pollen
 
   } catch(err) {
     overlay.classList.remove('active');
     fill.style.width='0%';
-    console.error('Generate error:', err);
-    notify('Error: '+err.message, 'err');
+    notify('Error: '+err.message,'err');
   }
 }
 
@@ -951,34 +948,27 @@ function pickCam(el){document.querySelectorAll('.cam-opt').forEach(e=>e.classLis
 function pickGrade(el){document.querySelectorAll('.grade').forEach(e=>e.classList.remove('active'));el.classList.add('active')}
 function togOpt(el,type){el.classList.toggle('on');el.classList.toggle('off');if(type==='lb')document.getElementById('pscreen').classList.toggle('letterbox')}
 async function doDownload(fmt){
-  if(!S.generated || !S.generatedClips || S.generatedClips.length===0){
+  if(!S.generated||!S.generatedClips||S.generatedClips.length===0){
     notify('Generate your video first','warn');return;
   }
-
-  notify('Preparing download…','ok');
-
-  // Alle Clips herunterladen
-  for(let i=0; i<S.generatedClips.length; i++){
-    const clip = S.generatedClips[i];
-    try {
-      // Video als Blob laden und herunterladen
-      const res = await fetch(clip.url);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `scenify-transition-${i+1}-${fmt.replace(':','-')}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      await new Promise(r => setTimeout(r, 500)); // kurz warten zwischen Downloads
-    } catch(err) {
-      // Fallback: direkt öffnen
-      window.open(clip.url, '_blank');
+  notify(`Downloading ${S.generatedClips.length} clip${S.generatedClips.length>1?'s':''}…`,'ok');
+  for(let i=0;i<S.generatedClips.length;i++){
+    const clip=S.generatedClips[i];
+    try{
+      const res=await fetch(clip.url);
+      const blob=await res.blob();
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=`scenify-clip-${i+1}.mp4`;
+      document.body.appendChild(a);a.click();
+      document.body.removeChild(a);URL.revokeObjectURL(url);
+      await new Promise(r=>setTimeout(r,600));
+    } catch(e){
+      window.open(clip.url,'_blank');
     }
   }
-  notify(`Downloaded ${S.generatedClips.length} clip${S.generatedClips.length>1?'s':''}!`,'ok');
+  notify(`Downloaded ${S.generatedClips.length} clips!`,'ok');
 }
 function notify(msg,type=''){
   const n=document.getElementById('notif');
