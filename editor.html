@@ -234,6 +234,15 @@ input[type=range]{width:100%;accent-color:var(--lime);cursor:pointer}
 .badge-4k{background:#1a1a1a;color:#333}
 .badge-lock{background:#1a1a1a;color:#333}
 
+.user-menu-wrap{position:relative}
+.user-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:#0d0d0d;border:1px solid #222;border-radius:12px;padding:6px;min-width:200px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.6);animation:ddIn .2s cubic-bezier(.34,1.56,.64,1)}
+@keyframes ddIn{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.ud-email{font-size:11px;color:#444;padding:8px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ud-divider{height:1px;background:#1a1a1a;margin:4px 0}
+.ud-item{display:block;width:100%;padding:9px 12px;font-size:12px;color:#888;text-decoration:none;border:none;background:transparent;cursor:pointer;border-radius:8px;transition:all .15s;text-align:left;font-family:'Inter',sans-serif}
+.ud-item:hover{background:#161616;color:#fff}
+.ud-logout{color:#c55}
+.ud-logout:hover{background:rgba(200,50,50,.1);color:#f88}
 .notif{position:fixed;bottom:20px;right:20px;background:#111;border:1px solid #222;border-radius:10px;padding:10px 18px;font-size:12px;color:#888;z-index:9999;transform:translateY(12px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
 .notif.show{transform:translateY(0);opacity:1}
 .notif.ok{border-color:rgba(201,245,66,.25);color:var(--lime)}
@@ -247,12 +256,39 @@ window.addEventListener('DOMContentLoaded', async () => {
   const { data: { session } } = await _sb.auth.getSession();
   if(!session){ window.location.href='auth.html'; return; }
   localStorage.setItem('sn_sess', JSON.stringify(session));
+
+  // User info anzeigen
+  const email = session.user.email || '';
+  const initial = email.charAt(0).toUpperCase();
+  document.getElementById('user-avatar').textContent = initial;
+  document.getElementById('user-email-short').textContent = email.split('@')[0];
+  document.getElementById('ud-email').textContent = email;
+
+  // Token Balance laden
   try {
     const res = await fetch(BACKEND+'/api/tokens/'+session.user.id);
     const data = await res.json();
     if(data.tokens !== undefined) document.getElementById('tok').textContent = data.tokens;
   } catch(err) { console.log('Token fetch error', err); }
+
+  // Click outside → close menu
+  document.addEventListener('click', (e) => {
+    if(!document.getElementById('user-menu-wrap')?.contains(e.target)){
+      document.getElementById('user-dropdown').style.display='none';
+    }
+  });
 });
+
+function toggleUserMenu(){
+  const dd = document.getElementById('user-dropdown');
+  dd.style.display = dd.style.display==='none' ? 'block' : 'none';
+}
+
+async function doLogout(){
+  await _sb.auth.signOut();
+  localStorage.removeItem('sn_sess');
+  window.location.href = 'auth.html';
+}
 </script>
 </head>
 <body>
