@@ -475,7 +475,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 <div class="notif" id="notif"></div>
 
 <script>
-const MAX_PHOTOS = 6; // Starter plan; Pro/Sub gets 8
+const MAX_PHOTOS = 6; // Starter: 6, Pro/Sub: 8 // Starter plan; Pro/Sub gets 8
 const S = {
   scenes:[],active:0,generated:false,playing:false,playT:null,currentTime:0,
   format:'16-9', frameStyle:'blur'
@@ -653,7 +653,7 @@ function renderPreview(){
   const blurBg=document.getElementById('blur-bg');
   if(!S.scenes.length){
     ph.style.display='flex';ph.style.background='#0a0a0a';
-    ph.innerHTML='<div class="preview-ph-emoji">🎬</div><div class="preview-ph-label">Add photos to get started</div>';
+    ph.innerHTML='<div class="preview-ph-emoji" style="font-size:48px;margin-bottom:12px">📷</div><div class="preview-ph-label" style="font-size:14px;color:#555">Upload photos to get started</div><div style="font-size:12px;color:#2a2a2a;margin-top:8px">JPEG or PNG · up to 6 photos</div>';
     img.style.display='none';blurBg.style.display='none';return;
   }
   const sc=S.scenes[S.active]||S.scenes[0];
@@ -777,7 +777,9 @@ function handleFiles(files){
       if(done===imgs.length){
         if(S.active===null||S.active===undefined)S.active=0;
         S.generated=false;
-        document.getElementById('gen-btn').disabled=false;
+        if(S.scenes.filter(s=>!s.excl).length>=2){
+          document.getElementById('gen-btn').disabled=false;
+        }
         render();
         notify(`${imgs.length} photo${imgs.length>1?'s':''} added`,'ok');
       }
